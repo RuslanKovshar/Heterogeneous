@@ -20,12 +20,10 @@ public class UserGraph implements BaseGraph {
     }
 
     @GraphQLQuery(name = "user")
-    public List<User> user(@GraphQLArgument(name = "id") Long id) {
-        if (id == null) {
+    public List<User> user(@GraphQLArgument(name = "id") Long[] ids) {
+        if (ids == null) {
             return userService.findAll();
         }
-        List<User> objects = new ArrayList<>();
-        objects.add(userService.getById(id));
-        return objects;
+        return userService.getAllByIds(ids);
     }
 }

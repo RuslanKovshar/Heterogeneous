@@ -18,6 +18,6 @@ public class User {
     private String name;
     private Long id;
     private Date registrationDate;
-    private List<Pair> data;
+    //private List<Pair> data;
     private Map<String, Object> fields;
 }
