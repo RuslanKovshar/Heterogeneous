@@ -4,6 +4,7 @@ import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 import com.kovshar.heterogeneous.model.User;
 import com.kovshar.heterogeneous.service.UserService;
 import graphql.GraphQL;
+import graphql.scalars.object.JsonScalar;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class GraphqlConfiguration {
+    @Bean
+    public JsonScalar jsonScalar() {
+        return new JsonScalar();
+    }
+
     //private final UserService userService;
 /*
     @Autowired

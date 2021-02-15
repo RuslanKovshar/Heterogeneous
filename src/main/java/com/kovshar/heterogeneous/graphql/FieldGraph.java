@@ -3,20 +3,21 @@ package com.kovshar.heterogeneous.graphql;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kovshar.heterogeneous.model.User;
+import graphql.language.*;
+import graphql.parser.Parser;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.SneakyThrows;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 public class FieldGraph implements BaseGraph {
@@ -25,43 +26,97 @@ public class FieldGraph implements BaseGraph {
     @GraphQLQuery(name = "fields")
     public Map<String, Object> field(@GraphQLContext User user, @GraphQLArgument(name = "key") List<String> keys) throws JsonProcessingException, JSONException {
         if (keys == null) {
-            return user.getFields();
+            Map<String, Object> fields = user.getFields();
+            JSONObject jsonObject = new JSONObject(new ObjectMapper().writeValueAsString(fields));
+            System.out.println(jsonObject);
+            HashMap<String, Object> result =
+                    new ObjectMapper().readValue(jsonObject.toString(), HashMap.class);
+            return result;
         }
-        Map<String, Object> resultMap = new HashMap<>();
-        for (String key : keys) {
-            if (key.contains(".")) {
-                final String[] split = key.split("\\.");
-                final String fieldName = split[0];
-                final String objectField = split[1];
-                final Object o = user.getFields().get(fieldName);
-                if (o != null) {
-                    try {
-                        final Field field1 = o.getClass().getDeclaredField(objectField);
-                        field1.setAccessible(true);
-                        final Object o1 = field1.get(o);
-                        final HashMap<Object, Object> value = new HashMap<>();
-                        value.put(objectField, o1);
-                        resultMap.put(fieldName, value);
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
-                        System.out.println(e.getMessage());
-                    }
-                }
-            } else {
-                final Object o = user.getFields().get(key);
-                if (o != null) {
-                    resultMap.put(key, o);
-                }
+
+        List<JSONObject> objects = new ArrayList<>();
+        keys.forEach(key -> {
+            JSONObject jsonObject;
+            try {
+                jsonObject = new JSONObject(new ObjectMapper().writeValueAsString(user.getFields()));
+                JSONObject resultObject = new JSONObject();
+                List<Field> list = parseGraphQLQuery(key);
+                Field rootField = list.get(0);
+                extracted(null, rootField, jsonObject, resultObject);
+                objects.add(resultObject);
+            } catch (JSONException | JsonProcessingException e) {
+                e.printStackTrace();
             }
+        });
+        JSONObject jsonObject = new JSONObject();
+        objects.forEach(obj -> {
+            String name = ((String) obj.keys().next());
+            try {
+                jsonObject.put(name, obj.get(name));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
+        return new ObjectMapper().readValue(jsonObject.toString(), HashMap.class);
+    }
+
+    private List<Field> parseGraphQLQuery(String query) {
+        List<Field> fieldList = new ArrayList<>();
+
+        Parser parser = new Parser();
+
+        Document doc = parser.parseDocument(query);
+
+        List<Definition> definitionList = doc.getDefinitions();
+        definitionList.forEach((item) -> {
+            if (item instanceof OperationDefinition) {
+                OperationDefinition operationDefinition = (OperationDefinition) item;
+                SelectionSet selectionSet = operationDefinition.getSelectionSet();
+                extractQueryElements(fieldList, selectionSet);
+            }
+        });
+
+        return fieldList;
+    }
+
+    private void extractQueryElements(List<Field> fieldNameList, SelectionSet selectionSet) {
+        if (selectionSet != null && selectionSet.getSelections() != null) {
+            selectionSet.getSelections().forEach((selection) -> {
+                if (selection instanceof Field) {
+                    Field field = (Field) selection;
+                    fieldNameList.add(field);
+                    extractQueryElements(fieldNameList, field.getSelectionSet());
+                }
+            });
         }
-        return resultMap;
     }
 
-    public static void main(String[] args) {
-        final String str = "field1{firstParameter secondParameter}";
-        final String rootFieldName = str.substring(0, str.indexOf("{"));
-        System.out.println(rootFieldName);
-        final String params = str.substring(str.indexOf("{") + 1, str.lastIndexOf("}"));
-        System.out.println(params);
-    }
+    @SneakyThrows
+    private void extracted(Field prev, Field rootField, JSONObject jsonObject, JSONObject resultObject) {
+        String fieldName = rootField.getName();
+        JSONObject jsonObject1;
+        if (prev == null) {
+            resultObject.put(fieldName, new JSONObject());
+            jsonObject1 = resultObject;
+        } else {
+            jsonObject1 = resultObject.getJSONObject(prev.getName());
+            jsonObject1.put(fieldName, new JSONObject());
+        }
 
+        if (rootField.getSelectionSet() != null) {
+            JSONObject object = jsonObject.getJSONObject(fieldName);
+            List<Selection> selections = rootField.getSelectionSet().getSelections();
+            if (selections != null) {
+                selections.forEach(selection -> {
+                    if (selection instanceof Field) {
+                        Field field = (Field) selection;
+                        extracted(rootField, field, object, jsonObject1);
+                    }
+                });
+            }
+        } else {
+            Object object = jsonObject.get(fieldName);
+            jsonObject1.put(fieldName, object);
+        }
+    }
 }
