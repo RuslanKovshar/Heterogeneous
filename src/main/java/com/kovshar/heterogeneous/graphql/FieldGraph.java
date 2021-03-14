@@ -1,6 +1,7 @@
 package com.kovshar.heterogeneous.graphql;
 
 import com.kovshar.heterogeneous.graphql.resolvers.KeyQueryResolver;
+import com.kovshar.heterogeneous.model.Field;
 import com.kovshar.heterogeneous.model.User;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
@@ -17,8 +18,8 @@ public class FieldGraph implements BaseGraph {
     private final KeyQueryResolver keyQueryResolver;
 
     @GraphQLQuery(name = "fields")
-    public Map<String, Object> field(@GraphQLContext User user,
-                                     @GraphQLArgument(name = "key") List<String> keys) {
+    public Map<String, Field> field(@GraphQLContext User user,
+                                    @GraphQLArgument(name = "key") List<String> keys) {
         if (keys == null) {
             return user.getFields();
         }
