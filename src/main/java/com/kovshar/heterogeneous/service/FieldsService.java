@@ -2,7 +2,7 @@ package com.kovshar.heterogeneous.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kovshar.heterogeneous.model.User;
+import com.kovshar.heterogeneous.model.Indicator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class FieldsService {
-    private final UserService userService;
+    private final IndicatorService indicatorService;
     private final ObjectMapper objectMapper;
 
 
     public TreeSet<Object> value() {
-        return userService.findAll().stream()
+        return indicatorService.findAll().stream()
                 .map(userToJson())
                 .map(jsonToJsonObject())
                 .flatMap(obj -> extracted(null, obj).stream())
@@ -40,7 +40,7 @@ public class FieldsService {
         };
     }
 
-    private Function<User, String> userToJson() {
+    private Function<Indicator, String> userToJson() {
         return user -> {
             try {
                 return objectMapper.writeValueAsString(user);

@@ -1,7 +1,7 @@
 package com.kovshar.heterogeneous.graphql;
 
-import com.kovshar.heterogeneous.model.User;
-import com.kovshar.heterogeneous.service.UserService;
+import com.kovshar.heterogeneous.model.Indicator;
+import com.kovshar.heterogeneous.service.IndicatorService;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,18 +11,18 @@ import java.util.List;
 
 @Component
 public class UserGraph implements BaseGraph {
-    private final UserService userService;
+    private final IndicatorService indicatorService;
 
     @Autowired
-    public UserGraph(UserService userService) {
-        this.userService = userService;
+    public UserGraph(IndicatorService indicatorService) {
+        this.indicatorService = indicatorService;
     }
 
-    @GraphQLQuery(name = "user")
-    public List<User> user(@GraphQLArgument(name = "id") Long[] ids) {
+    @GraphQLQuery(name = "indicator")
+    public List<Indicator> user(@GraphQLArgument(name = "id") Long[] ids) {
         if (ids == null) {
-            return userService.findAll();
+            return indicatorService.findAll();
         }
-        return userService.getAllByIds(ids);
+        return indicatorService.getAllByIds(ids);
     }
 }
