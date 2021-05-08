@@ -83,7 +83,5 @@ public class Indicator {
     private String recruitmentEmployeeScientificDegree;
     private Integer shareInternationalPersonnelSelectionPercentage;
 
-
-
-    private Map<String, Field> fields;
+    private Map<String, Object> fields;
 }

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kovshar.heterogeneous.model.Field;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -21,7 +21,7 @@ public class JsonMapConverter {
     }
 
     @SneakyThrows
-    public Map<String, Field> toMap(JSONObject json) {
+    public Map<String, Object> toMap(JSONObject json) {
         return mapper.readValue(json.toString(), new TypeReference<>() {
         });
     }

@@ -1,13 +1,15 @@
 package com.kovshar.heterogeneous.utils;
 
+import com.kovshar.heterogeneous.model.Field;
 import com.kovshar.heterogeneous.model.Indicator;
 import com.kovshar.heterogeneous.repository.IndicatorRepository;
-import com.kovshar.heterogeneous.service.IndicatorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -16,7 +18,6 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 @Slf4j
 public class DBFiller {
-    private final IndicatorService indicatorService;
     private final IndicatorRepository indicatorRepository;
 
     private static final List<String> UNIVERSITY_NAMES = List.of(
@@ -108,6 +109,21 @@ public class DBFiller {
                     .shareInternationalPersonnelSelectionPercentage(random(100))
                     .build();
 
+            if (i == 9) {
+                HashMap<String, Object> fields = new HashMap<>();
+                Field value = new Field(UUID.randomUUID().toString(), 100);
+                Field value1 = new Field(UUID.randomUUID().toString(), 2021);
+                HashMap<Object, Object> data = new HashMap<>();
+                data.put("data", new Date());
+                data.put("name", "Ruslan");
+                data.put("id", 529440L);
+                data.put("names", List.of("A", "B", "C"));
+                Field value3 = new Field(UUID.randomUUID().toString(), new Field(UUID.randomUUID().toString(), data));
+                fields.put("Percentage", value);
+                fields.put("Year", value1);
+                fields.put("Date", value3);
+                indicator.setFields(fields);
+            }
             indicatorRepository.save(indicator);
         }
     }

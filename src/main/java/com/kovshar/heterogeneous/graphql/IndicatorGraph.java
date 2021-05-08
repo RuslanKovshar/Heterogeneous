@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class UserGraph implements BaseGraph {
+public class IndicatorGraph implements BaseGraph {
     private final IndicatorService indicatorService;
 
     @Autowired
-    public UserGraph(IndicatorService indicatorService) {
+    public IndicatorGraph(IndicatorService indicatorService) {
         this.indicatorService = indicatorService;
     }
 

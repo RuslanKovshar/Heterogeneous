@@ -18,7 +18,7 @@ public class FieldGraph implements BaseGraph {
     private final KeyQueryResolver keyQueryResolver;
 
     @GraphQLQuery(name = "fields")
-    public Map<String, Field> field(@GraphQLContext Indicator indicator,
+    public Map<String, Object> field(@GraphQLContext Indicator indicator,
                                     @GraphQLArgument(name = "key") List<String> keys) {
         if (keys == null) {
             return indicator.getFields();

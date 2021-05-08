@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kovshar.heterogeneous.model.Indicator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -50,28 +50,23 @@ public class FieldsService {
         };
     }
 
-    private List<Object> extracted(Object next1, JSONObject obj) {
-        Iterator keys = obj.keys();
+    private List<Object> extracted(Object prev, JSONObject obj) {
+        Iterator<String> keys = obj.keys();
         List<Object> result = new ArrayList<>();
         while (keys.hasNext()) {
-            Object next = keys.next();
-            Object vpizdu;
-            if (next1 != null) {
-                vpizdu = next1 + "." + next;
-                //System.out.println(next1 + "." + next);
+            String current = keys.next();
+            Object next;
+            if (prev != null) {
+                next = prev + "." + current;
             } else {
-                vpizdu = next;
-                //System.out.println(next);
+                next = current;
             }
-            result.addAll(List.of(vpizdu));
+            result.addAll(List.of(next));
             try {
-                JSONObject o = obj.getJSONObject(((String) next));
-                //result.addAll(List.of(vpizdu));
-                List<Object> extracted = extracted(vpizdu, o);
+                JSONObject o = obj.getJSONObject(current);
+                List<Object> extracted = extracted(next, o);
                 result.addAll(extracted);
-                //    System.out.println(o);
-            } catch (JSONException e) {
-                //throw new RuntimeException(e);
+            } catch (JSONException ignored) {
             }
         }
         return result;
