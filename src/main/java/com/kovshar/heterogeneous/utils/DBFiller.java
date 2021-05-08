@@ -3,6 +3,7 @@ package com.kovshar.heterogeneous.utils;
 import com.kovshar.heterogeneous.model.Field;
 import com.kovshar.heterogeneous.model.Indicator;
 import com.kovshar.heterogeneous.repository.IndicatorRepository;
+import com.kovshar.heterogeneous.service.SequenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 public class DBFiller {
     private final IndicatorRepository indicatorRepository;
+    private final SequenceService sequenceService;
 
     private static final List<String> UNIVERSITY_NAMES = List.of(
             "Національний технічний університет України Київський політехнічний інститут ім. Ігоря Сікорського",
@@ -37,10 +39,11 @@ public class DBFiller {
     @PostConstruct
     public void initData() {
         indicatorRepository.deleteAll();
+        sequenceService.drop();
         for (int i = 0; i < UNIVERSITY_NAMES.size(); i++) {
             String name = UNIVERSITY_NAMES.get(i);
             Indicator indicator = Indicator.builder()
-                    .id(((long) i))
+                    .id(sequenceService.generateSequence(Indicator.SEQUENCE_NAME))
                     .uuid(UUID.randomUUID().toString())
                     //ПЗФ
                     .organization(name)

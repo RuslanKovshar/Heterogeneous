@@ -32,6 +32,9 @@ public class GraphQLController {
 
     @GetMapping("/fields")
     public TreeSet<Object> value() {
-        return fieldsService.value();
+        log.debug("Find all fields");
+        TreeSet<Object> value = fieldsService.value();
+        log.debug("Found fields {}", value);
+        return value;
     }
 }

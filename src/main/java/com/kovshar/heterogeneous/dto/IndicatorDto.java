@@ -1,28 +1,11 @@
-package com.kovshar.heterogeneous.model;
+package com.kovshar.heterogeneous.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
 import java.util.Map;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Document(collection = "indicators")
-@Builder
-public class Indicator {
-    @Transient
-    public static final String SEQUENCE_NAME = "users_sequence";
-
-    @Id
-    private Long id;
-    private String uuid;
+public class IndicatorDto {
     //ПЗФ
     private String organization;
     private Integer year;
@@ -88,14 +71,6 @@ public class Indicator {
     private Integer employeesEngagedInRecruitmentTotalNumber;
     private String recruitmentEmployeeScientificDegree;
     private Integer shareInternationalPersonnelSelectionPercentage;
-
+    //Added fields
     private Map<String, Object> fields;
-
-    @Override
-    public String toString() {
-        return "Indicator{" +
-                "id=" + id +
-                ", uuid='" + uuid + '\'' +
-                '}';
-    }
 }
