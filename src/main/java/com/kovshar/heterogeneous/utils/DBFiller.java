@@ -120,7 +120,7 @@ public class DBFiller {
                 data.put("data", new Date());
                 data.put("name", "Ruslan");
                 data.put("id", 529440L);
-                data.put("names", List.of("A", "B", "C"));
+                data.put("names", List.of("Alfred", "Bruce", "Cat"));
                 Field value3 = new Field(UUID.randomUUID().toString(), new Field(UUID.randomUUID().toString(), data));
                 fields.put("Percentage", value);
                 fields.put("Year", value1);
