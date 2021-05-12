@@ -7,11 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
+import springfox.documentation.spring.web.json.Json;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -50,12 +48,28 @@ public class FieldsService {
         };
     }
 
-    private List<Object> extracted(Object prev, JSONObject obj) {
+    public Object getDataFromField(JSONObject jsonObject, String fieldName) {
+        String[] names = fieldName.split("\\.");
+        Object data = null;
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i];
+            if (i == names.length - 1) {
+                Map<String, Object> stringObjectMap = jsonObject.toMap();
+                data = stringObjectMap.get(name);
+            } else {
+                if (jsonObject.get(name) != null && !jsonObject.get(name).toString().equals("null"))
+                    jsonObject = jsonObject.getJSONObject(name);
+            }
+        }
+        return data;
+    }
+
+    private List<String> extracted(String prev, JSONObject obj) {
         Iterator<String> keys = obj.keys();
-        List<Object> result = new ArrayList<>();
+        List<String> result = new ArrayList<>();
         while (keys.hasNext()) {
             String current = keys.next();
-            Object next;
+            String next;
             if (prev != null) {
                 next = prev + "." + current;
             } else {
@@ -64,7 +78,7 @@ public class FieldsService {
             result.addAll(List.of(next));
             try {
                 JSONObject o = obj.getJSONObject(current);
-                List<Object> extracted = extracted(next, o);
+                List<String> extracted = extracted(next, o);
                 result.addAll(extracted);
             } catch (JSONException ignored) {
             }
