@@ -8,10 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,8 +18,7 @@ public class FieldsService {
     private final IndicatorService indicatorService;
     private final ObjectMapper objectMapper;
 
-
-    public TreeSet<Object> value() {
+    public TreeSet<String> value() {
         return indicatorService.findAll().stream()
                 .map(userToJson())
                 .map(jsonToJsonObject())
@@ -50,12 +46,38 @@ public class FieldsService {
         };
     }
 
-    private List<Object> extracted(Object prev, JSONObject obj) {
+    public Object getDataFromField(JSONObject jsonObject, String fieldName) {
+        String[] names = fieldName.split("\\.");
+        Object data = null;
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i];
+            if (i == names.length - 1) {
+                if (jsonObject.has(name)) {
+                    data = jsonObject.get(name);
+                    if (data instanceof JSONObject) {
+                        data = null;
+                    }
+                }
+            } else {
+                if (jsonObject.has(name)) {
+                    Object value = jsonObject.get(name);
+                    if (value instanceof JSONObject) {
+                        jsonObject = (JSONObject) value;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        return data;
+    }
+
+    private List<String> extracted(String prev, JSONObject obj) {
         Iterator<String> keys = obj.keys();
-        List<Object> result = new ArrayList<>();
+        List<String> result = new ArrayList<>();
         while (keys.hasNext()) {
             String current = keys.next();
-            Object next;
+            String next;
             if (prev != null) {
                 next = prev + "." + current;
             } else {
@@ -64,7 +86,7 @@ public class FieldsService {
             result.addAll(List.of(next));
             try {
                 JSONObject o = obj.getJSONObject(current);
-                List<Object> extracted = extracted(next, o);
+                List<String> extracted = extracted(next, o);
                 result.addAll(extracted);
             } catch (JSONException ignored) {
             }

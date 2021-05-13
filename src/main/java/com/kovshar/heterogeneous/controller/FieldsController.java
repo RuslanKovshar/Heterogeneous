@@ -17,9 +17,9 @@ public class FieldsController {
     private final FieldsService fieldsService;
 
     @GetMapping
-    public TreeSet<Object> value() {
+    public TreeSet<String> value() {
         log.debug("Find all fields");
-        TreeSet<Object> value = fieldsService.value();
+        TreeSet<String> value = fieldsService.value();
         log.debug("Found fields {}", value);
         return value;
     }
