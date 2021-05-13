@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
-import springfox.documentation.spring.web.json.Json;
 
 import java.util.*;
 import java.util.function.Function;
@@ -19,8 +18,7 @@ public class FieldsService {
     private final IndicatorService indicatorService;
     private final ObjectMapper objectMapper;
 
-
-    public TreeSet<Object> value() {
+    public TreeSet<String> value() {
         return indicatorService.findAll().stream()
                 .map(userToJson())
                 .map(jsonToJsonObject())
@@ -54,11 +52,21 @@ public class FieldsService {
         for (int i = 0; i < names.length; i++) {
             String name = names[i];
             if (i == names.length - 1) {
-                Map<String, Object> stringObjectMap = jsonObject.toMap();
-                data = stringObjectMap.get(name);
+                if (jsonObject.has(name)) {
+                    data = jsonObject.get(name);
+                    if (data instanceof JSONObject) {
+                        data = null;
+                    }
+                }
             } else {
-                if (jsonObject.get(name) != null && !jsonObject.get(name).toString().equals("null"))
-                    jsonObject = jsonObject.getJSONObject(name);
+                if (jsonObject.has(name)) {
+                    Object value = jsonObject.get(name);
+                    if (value instanceof JSONObject) {
+                        jsonObject = (JSONObject) value;
+                    } else {
+                        break;
+                    }
+                }
             }
         }
         return data;

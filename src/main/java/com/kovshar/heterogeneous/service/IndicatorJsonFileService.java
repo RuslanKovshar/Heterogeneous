@@ -21,7 +21,7 @@ public class IndicatorJsonFileService extends AbstractIndicatorFileService {
     public byte[] getContent() {
         List<Indicator> all = indicatorService.findAll();
         try {
-            return objectMapper.writeValueAsBytes(all);
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(all);
         } catch (JsonProcessingException e) {
             throw new RuntimeException();
         }
