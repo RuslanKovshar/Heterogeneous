@@ -143,7 +143,7 @@ public class DBFiller {
     }
 
     private int random(int max) {
-        return random(0, max);
+        return random(1, max);
     }
 
     private long random(long min, long max) {
@@ -151,6 +151,6 @@ public class DBFiller {
     }
 
     private long random(long max) {
-        return random(0, max);
+        return random(1, max);
     }
 }
