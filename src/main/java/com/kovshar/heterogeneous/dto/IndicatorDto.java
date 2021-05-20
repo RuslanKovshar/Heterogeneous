@@ -64,6 +64,7 @@ public class IndicatorDto {
     private String countryUser;
     private Integer foreignResearchersNumber;
     private Integer daysUsedByForeignResearchersNumber;
+    private Integer manDaysPerYear;
     //ПМЗ
     private Integer employeesInInternationalPersonnelSelectionStructuresNumber;
     private String internationalPersonnelSelectionStructuresEmployeeScientificDegree;
@@ -71,6 +72,10 @@ public class IndicatorDto {
     private Integer employeesEngagedInRecruitmentTotalNumber;
     private String recruitmentEmployeeScientificDegree;
     private Integer shareInternationalPersonnelSelectionPercentage;
+    //ПМO
+    private Integer foreignExpertCount;
+    private Integer expertCount;
+    private Integer shareOfForeignExpert;
     //Added fields
     private Map<String, Object> fields;
 }
