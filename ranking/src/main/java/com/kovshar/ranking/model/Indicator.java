@@ -1,11 +1,18 @@
-package com.kovshar.heterogeneous.dto;
+package com.kovshar.ranking.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
 @Data
-public class IndicatorDto {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Indicator {
+    private String uuid;
     //ПЗФ
     private String organization;
     private Integer year;
@@ -76,6 +83,6 @@ public class IndicatorDto {
     private Integer foreignExpertCount;
     private Integer expertCount;
     private Integer shareOfForeignExpert;
-    //Added fields
+
     private Map<String, Object> fields;
 }

@@ -42,6 +42,8 @@ public class DBFiller {
         sequenceService.drop();
         for (int i = 0; i < UNIVERSITY_NAMES.size(); i++) {
             String name = UNIVERSITY_NAMES.get(i);
+            int foreignExpertCount = random(70);
+            int expertCount = random(100);
             Indicator indicator = Indicator.builder()
                     .id(sequenceService.generateSequence(Indicator.SEQUENCE_NAME))
                     .uuid(UUID.randomUUID().toString())
@@ -103,6 +105,7 @@ public class DBFiller {
                     .countryUser("Ukraine")
                     .foreignResearchersNumber(random(150))
                     .daysUsedByForeignResearchersNumber(random(90))
+                    .manDaysPerYear(random(100))
                     //ПМЗ
                     .employeesInInternationalPersonnelSelectionStructuresNumber(random(200))
                     .internationalPersonnelSelectionStructuresEmployeeScientificDegree("BACHELOR")
@@ -110,6 +113,10 @@ public class DBFiller {
                     .employeesEngagedInRecruitmentTotalNumber(random(200))
                     .recruitmentEmployeeScientificDegree("BACHELOR")
                     .shareInternationalPersonnelSelectionPercentage(random(100))
+                    //ПМO
+                    .foreignExpertCount(foreignExpertCount)
+                    .expertCount(expertCount)
+                    .shareOfForeignExpert((foreignExpertCount / expertCount) * 100)
                     .build();
 
             if (i == 9) {
@@ -136,7 +143,7 @@ public class DBFiller {
     }
 
     private int random(int max) {
-        return random(0, max);
+        return random(1, max);
     }
 
     private long random(long min, long max) {
@@ -144,6 +151,6 @@ public class DBFiller {
     }
 
     private long random(long max) {
-        return random(0, max);
+        return random(1, max);
     }
 }
