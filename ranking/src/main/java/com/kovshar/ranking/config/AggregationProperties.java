@@ -8,4 +8,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AggregationProperties {
     private String rootPath;
     private String indicatorPath;
+    private String metadataSearchPath;
 }
