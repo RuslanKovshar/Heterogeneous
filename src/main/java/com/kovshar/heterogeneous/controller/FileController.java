@@ -7,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/file")
@@ -22,5 +19,11 @@ public class FileController {
     @GetMapping(path = "/indicator/download/{type}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<Resource> downloadIndicatorFile(@PathVariable FileExtensions type) {
         return indicatorFileServicesProvider.getResource(type, "indicator");
+    }
+
+    @PostMapping(path = "/indicator/download/by-query/{type}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<Resource> downloadIndicatorFileByQuery(@PathVariable FileExtensions type,
+                                                                 @RequestBody String query) {
+        return indicatorFileServicesProvider.getResourceByQuery(type, "indicator", query);
     }
 }
