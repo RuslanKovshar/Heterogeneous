@@ -1,7 +1,7 @@
 package com.kovshar.heterogeneous.utils;
 
-import com.kovshar.heterogeneous.model.Field;
-import com.kovshar.heterogeneous.model.Indicator;
+import com.kovshar.heterogeneous.model.*;
+import com.kovshar.heterogeneous.repository.FieldsMetadataRepository;
 import com.kovshar.heterogeneous.repository.IndicatorRepository;
 import com.kovshar.heterogeneous.service.SequenceService;
 import lombok.RequiredArgsConstructor;
@@ -9,19 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class DBFiller {
-    private final IndicatorRepository indicatorRepository;
-    private final SequenceService sequenceService;
-
     private static final List<String> UNIVERSITY_NAMES = List.of(
             "Національний технічний університет України Київський політехнічний інститут ім. Ігоря Сікорського",
             "Київський національний університет ім. Тараса Шевченка",
@@ -35,6 +29,9 @@ public class DBFiller {
             "Вінницький національний технічний університет"
 
     );
+    private final IndicatorRepository indicatorRepository;
+    private final SequenceService sequenceService;
+    private final FieldsMetadataRepository fieldsMetadataRepository;
 
     @PostConstruct
     public void initData() {
@@ -136,6 +133,31 @@ public class DBFiller {
             }
             indicatorRepository.save(indicator);
         }
+        generateFieldMetadata();
+    }
+
+    private void generateFieldMetadata() {
+        List<String> fieldsIds = List.of(
+                "shareOfPublicationsWithForeignAuthorsPercentage",
+                "foreignResearchersNumber",
+                "daysUsedByForeignResearchersNumber",
+                "manDaysPerYear",
+                "shareScientistsInvolved",
+                "shareScientistsSecondedPercentage",
+                "foreignFinancingPercentage",
+                "fundingEfficiency",
+                "organizationFundingSharePercentage",
+                "shareInternationalPersonnelSelectionPercentage",
+                "shareOfForeignExpert");
+
+        fieldsIds.forEach(fieldId -> {
+            List<Filter> filters = new ArrayList<>();
+            filters.add(new Filter(ComparisionOperator.BIGGER, "0"));
+            filters.add(new Filter(ComparisionOperator.LESS, "100"));
+            long id = sequenceService.generateSequence(FieldMetadata.SEQUENCE_NAME);
+            FieldMetadata metadata = new FieldMetadata(id, fieldId, "INT", LogicOperation.AND, filters);
+            fieldsMetadataRepository.save(metadata);
+        });
     }
 
     private int random(int min, int max) {
