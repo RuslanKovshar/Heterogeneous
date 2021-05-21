@@ -1,49 +1,29 @@
 package com.kovshar.heterogeneous.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kovshar.heterogeneous.model.Indicator;
+import com.kovshar.heterogeneous.converter.JsonObjectConverter;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FieldsService {
     private final IndicatorService indicatorService;
-    private final ObjectMapper objectMapper;
+    private final JsonObjectConverter converter;
 
     public TreeSet<String> value() {
-        return indicatorService.findAll().stream()
-                .map(userToJson())
-                .map(jsonToJsonObject())
-                .flatMap(obj -> extracted(null, obj).stream())
+        return value(Arrays.asList(indicatorService.findAll().toArray()));
+    }
+
+    public TreeSet<String> value(List<Object> indicators) {
+        return indicators.stream()
+                .map(converter::createJSONObject)
+                .flatMap(obj -> getFieldsNamesFromJsonObject(null, obj).stream())
                 .collect(Collectors.toCollection(TreeSet::new));
-    }
-
-    private Function<String, JSONObject> jsonToJsonObject() {
-        return json -> {
-            try {
-                return new JSONObject(json);
-            } catch (JSONException e) {
-                throw new RuntimeException();
-            }
-        };
-    }
-
-    private Function<Indicator, String> userToJson() {
-        return user -> {
-            try {
-                return objectMapper.writeValueAsString(user);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException();
-            }
-        };
     }
 
     public Object getDataFromField(JSONObject jsonObject, String fieldName) {
@@ -72,7 +52,7 @@ public class FieldsService {
         return data;
     }
 
-    private List<String> extracted(String prev, JSONObject obj) {
+    private List<String> getFieldsNamesFromJsonObject(String prev, JSONObject obj) {
         Iterator<String> keys = obj.keys();
         List<String> result = new ArrayList<>();
         while (keys.hasNext()) {
@@ -86,7 +66,7 @@ public class FieldsService {
             result.addAll(List.of(next));
             try {
                 JSONObject o = obj.getJSONObject(current);
-                List<String> extracted = extracted(next, o);
+                List<String> extracted = getFieldsNamesFromJsonObject(next, o);
                 result.addAll(extracted);
             } catch (JSONException ignored) {
             }
