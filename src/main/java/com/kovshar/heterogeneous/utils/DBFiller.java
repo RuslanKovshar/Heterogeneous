@@ -100,7 +100,7 @@ public class DBFiller {
                     .researchInfrastructureObject("HIGHWAY")
                     .researchInfrastructureType("Infra")
                     .countryUser("Ukraine")
-                    .foreignResearchersNumber(random(150))
+                    .foreignResearchersNumber(random(100))
                     .daysUsedByForeignResearchersNumber(random(90))
                     .manDaysPerYear(random(100))
                     //ПМЗ
@@ -113,7 +113,7 @@ public class DBFiller {
                     //ПМO
                     .foreignExpertCount(foreignExpertCount)
                     .expertCount(expertCount)
-                    .shareOfForeignExpert((foreignExpertCount / expertCount) * 100)
+                    .shareOfForeignExpert(random(100))
                     .build();
 
             if (i == 9) {
@@ -152,8 +152,8 @@ public class DBFiller {
 
         fieldsIds.forEach(fieldId -> {
             List<Filter> filters = new ArrayList<>();
-            filters.add(new Filter(ComparisionOperator.BIGGER, "0"));
-            filters.add(new Filter(ComparisionOperator.LESS, "100"));
+            filters.add(new Filter(ComparisionOperator.BIGGER_EQUAL, "0"));
+            filters.add(new Filter(ComparisionOperator.LESS_EQUAL, "100"));
             long id = sequenceService.generateSequence(FieldMetadata.SEQUENCE_NAME);
             FieldMetadata metadata = new FieldMetadata(id, fieldId, "INT", LogicOperation.AND, filters);
             fieldsMetadataRepository.save(metadata);
