@@ -3,12 +3,14 @@ package com.kovshar.heterogeneous.service;
 import com.kovshar.heterogeneous.dto.FieldMetadataDto;
 import com.kovshar.heterogeneous.mapper.FieldMetadataMapper;
 import com.kovshar.heterogeneous.model.FieldMetadata;
-import com.kovshar.heterogeneous.model.Indicator;
 import com.kovshar.heterogeneous.repository.FieldsMetadataRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +42,11 @@ public class FieldMetadataService {
         final FieldMetadata metadata = findById(id);
         repository.delete(metadata);
         return metadata;
+    }
+
+    public Map<String, FieldMetadata> getAllMetadataByFieldsIds(List<String> fieldsIds) {
+        return repository.findAllByFieldIdIn(fieldsIds).stream()
+                .collect(Collectors.toMap(FieldMetadata::getFieldId, Function.identity()));
     }
 
 }

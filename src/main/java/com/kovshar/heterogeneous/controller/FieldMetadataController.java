@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(("/field-metadata"))
@@ -55,5 +56,13 @@ public class FieldMetadataController {
         FieldMetadata fieldMetadata = service.delete(id);
         log.debug("Deleted FieldMetadata {}", fieldMetadata);
         return fieldMetadata;
+    }
+
+    @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, FieldMetadata> searchMetadataByFieldsId(@RequestBody List<String> ids) {
+        log.debug("Search FieldMetadata by fieldsIds {} ", ids);
+        Map<String, FieldMetadata> metadata = service.getAllMetadataByFieldsIds(ids);
+        log.debug("Found FieldMetadata by fieldsIds {} ", ids);
+        return metadata;
     }
 }
