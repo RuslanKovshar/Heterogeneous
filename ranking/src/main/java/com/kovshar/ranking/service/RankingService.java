@@ -7,4 +7,6 @@ import java.util.List;
 public interface RankingService {
 
     List<IndicatorRating> createDefaultSystemRanking();
+
+    Object createUserRanking(String formula);
 }

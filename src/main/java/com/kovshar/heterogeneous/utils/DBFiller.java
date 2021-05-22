@@ -116,8 +116,12 @@ public class DBFiller {
                     .shareOfForeignExpert(random(100))
                     .build();
 
+            Map<String, Object> objectHashMap = new HashMap<>();
+            objectHashMap.put("correlation", 10);
+            indicator.setFields(objectHashMap);
+
             if (i == 9) {
-                HashMap<String, Object> fields = new HashMap<>();
+                Map<String, Object> fields = indicator.getFields();
                 Field value = new Field(UUID.randomUUID().toString(), 100);
                 Field value1 = new Field(UUID.randomUUID().toString(), 2021);
                 HashMap<Object, Object> data = new HashMap<>();
@@ -129,7 +133,6 @@ public class DBFiller {
                 fields.put("Percentage", value);
                 fields.put("Year", value1);
                 fields.put("Date", value3);
-                indicator.setFields(fields);
             }
             indicatorRepository.save(indicator);
         }
@@ -158,6 +161,12 @@ public class DBFiller {
             FieldMetadata metadata = new FieldMetadata(id, fieldId, "INT", LogicOperation.AND, filters);
             fieldsMetadataRepository.save(metadata);
         });
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(new Filter(ComparisionOperator.EQUAL, "10"));
+        long id = sequenceService.generateSequence(FieldMetadata.SEQUENCE_NAME);
+        FieldMetadata metadata = new FieldMetadata(id, "fields.correlation", "INT", LogicOperation.AND, filters);
+        fieldsMetadataRepository.save(metadata);
     }
 
     private int random(int min, int max) {
