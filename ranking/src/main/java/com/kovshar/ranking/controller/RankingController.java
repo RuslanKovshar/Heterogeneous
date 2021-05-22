@@ -2,9 +2,7 @@ package com.kovshar.ranking.controller;
 
 import com.kovshar.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/ranking")
@@ -15,5 +13,10 @@ public class RankingController {
     @GetMapping("/default")
     public Object createDefaultRanking() {
         return rankingService.createDefaultSystemRanking();
+    }
+
+    @PostMapping("/user")
+    public Object createUserRanking(@RequestBody String formula) {
+        return rankingService.createUserRanking(formula);
     }
 }

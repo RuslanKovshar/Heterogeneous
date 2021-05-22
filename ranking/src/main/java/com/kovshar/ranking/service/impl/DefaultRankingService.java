@@ -1,25 +1,25 @@
 package com.kovshar.ranking.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kovshar.ranking.model.*;
+import com.kovshar.ranking.conventer.JsonObjectConverter;
+import com.kovshar.ranking.model.FieldMetadata;
+import com.kovshar.ranking.model.Indicator;
+import com.kovshar.ranking.model.IndicatorRating;
+import com.kovshar.ranking.model.WightedIndicator;
 import com.kovshar.ranking.model.dto.IndicatorDto;
 import com.kovshar.ranking.service.AggregationRestService;
+import com.kovshar.ranking.service.FieldsIdsFetcher;
 import com.kovshar.ranking.service.MetadataValidator;
 import com.kovshar.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.kovshar.ranking.utils.FieldsUtils.getDataFromField;
@@ -28,13 +28,22 @@ import static com.kovshar.ranking.utils.FieldsUtils.getDataFromField;
 @RequiredArgsConstructor
 public class DefaultRankingService implements RankingService {
     private final AggregationRestService restService;
-    private final ObjectMapper mapper;
     private final MetadataValidator validator;
+    private final JsonObjectConverter converter;
+    private final FieldsIdsFetcher fieldsIdsFetcher;
 
     @Override
     public List<IndicatorRating> createDefaultSystemRanking() {
         List<Indicator> indicators = restService.fetchAllIndicators();
-        List<WightedIndicator> wightedIndicators = getWightedIndicators(indicators);
+        List<WightedIndicator> wightedIndicators = getWightedIndicators(indicators, this.toWightedIndicator());
+        return createWightedIndicatorRating(wightedIndicators);
+    }
+
+    @Override
+    public Object createUserRanking(String formula) {
+        List<Indicator> indicators = restService.fetchAllIndicators();
+        List<String> ids = fieldsIdsFetcher.fetchFieldsIds(formula);
+        List<WightedIndicator> wightedIndicators = getWightedIndicators(indicators, this.toFormulaWightedIndicator(formula, ids));
         return createWightedIndicatorRating(wightedIndicators);
     }
 
@@ -50,23 +59,52 @@ public class DefaultRankingService implements RankingService {
         return indicatorRatingList;
     }
 
-    private List<WightedIndicator> getWightedIndicators(List<Indicator> indicators) {
+    private Function<Indicator, WightedIndicator> toFormulaWightedIndicator(String formula, List<String> ids) {
+        return i -> {
+            validateIndicatorByDefaultRatingFields(i, ids);
+            JSONObject jsonObject = converter.createJSONObject(i);
+            Map<String, Double> variables = new HashMap<>();
+            ids.forEach(fieldId -> {
+                String value = getDataFromField(jsonObject, fieldId).toString();
+                variables.put(fieldId, Double.valueOf(value));
+            });
+            Expression expression = new ExpressionBuilder(formula)
+                    .variables(ids.toArray(new String[0]))
+                    .build()
+                    .setVariables(variables);
+            double result = expression.evaluate();
+            return new WightedIndicator(result, i);
+        };
+    }
+
+    private List<WightedIndicator> getWightedIndicators(List<Indicator> indicators, Function<Indicator, WightedIndicator> mapper) {
         return indicators.stream()
-                .map(toWightedIndicator())
+                .map(mapper)
                 .sorted(Comparator.comparingDouble(WightedIndicator::getWightedAmount).reversed())
                 .collect(Collectors.toList());
     }
 
     private Function<Indicator, WightedIndicator> toWightedIndicator() {
         return i -> {
-            double wightedAmount = calculateWightedAmount(i);
+            double wightedAmount = calculateDefaultSystemWightedAmount(i);
             return new WightedIndicator(wightedAmount, i);
         };
     }
 
-    @SneakyThrows
-    private double calculateWightedAmount(Indicator i) {
-        validateIndicatorByDefaultRatingFields(i);
+    private double calculateDefaultSystemWightedAmount(Indicator i) {
+        List<String> fieldsIds = List.of(
+                "shareOfPublicationsWithForeignAuthorsPercentage",
+                "foreignResearchersNumber",
+                "daysUsedByForeignResearchersNumber",
+                "manDaysPerYear",
+                "shareScientistsInvolved",
+                "shareScientistsSecondedPercentage",
+                "foreignFinancingPercentage",
+                "fundingEfficiency",
+                "organizationFundingSharePercentage",
+                "shareInternationalPersonnelSelectionPercentage",
+                "shareOfForeignExpert");
+        validateIndicatorByDefaultRatingFields(i, fieldsIds);
 
         double pms = 0.8 * i.getShareOfPublicationsWithForeignAuthorsPercentage();
         double pdi = 0.2 * i.getForeignResearchersNumber() * i.getDaysUsedByForeignResearchersNumber() / i.getManDaysPerYear();
@@ -91,24 +129,12 @@ public class DefaultRankingService implements RankingService {
                 0.25 * internationalOrientationOfAdministration;
     }
 
-    private void validateIndicatorByDefaultRatingFields(Indicator i) throws JsonProcessingException {
-        List<String> fieldsIds = List.of(
-                "shareOfPublicationsWithForeignAuthorsPercentage",
-                "foreignResearchersNumber",
-                "daysUsedByForeignResearchersNumber",
-                "manDaysPerYear",
-                "shareScientistsInvolved",
-                "shareScientistsSecondedPercentage",
-                "foreignFinancingPercentage",
-                "fundingEfficiency",
-                "organizationFundingSharePercentage",
-                "shareInternationalPersonnelSelectionPercentage",
-                "shareOfForeignExpert");
+    private void validateIndicatorByDefaultRatingFields(Indicator i, List<String> fieldsIds) {
         Map<String, FieldMetadata> fieldMetadataMap = restService.findMetadataByFieldsIds(fieldsIds);
 
-        String json = mapper.writeValueAsString(i);
+        JSONObject jsonObject = converter.createJSONObject(i);
         fieldsIds.forEach(fieldId -> {
-            String value = getDataFromField(new JSONObject(json), fieldId).toString();
+            String value = getDataFromField(jsonObject, fieldId).toString();
             FieldMetadata metadata = fieldMetadataMap.get(fieldId);
             validator.validateFieldByMetadata(fieldId, value, metadata);
         });
