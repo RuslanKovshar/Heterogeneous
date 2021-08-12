@@ -15,7 +15,7 @@ public class JsonObjectConverter {
         try {
             return new JSONObject(objectMapper.writeValueAsString(object));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException();
+            throw new RuntimeException("Error: ");
         }
     }
 }
